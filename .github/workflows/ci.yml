@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "feat/**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  platform:
+    name: Python platform (ruff + mypy + pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: platform
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.12.x"
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+      - name: Install dependencies
+        run: uv sync --all-groups
+      - name: Ruff
+        run: uv run ruff check .
+      - name: Mypy (core)
+        run: uv run mypy src/stov_scientist
+      - name: Pytest
+        run: uv run pytest -q
+
+  skills:
+    name: STOV skills tests (topology + phase screen)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: platform
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.12.x"
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+      - name: Install dependencies
+        run: uv sync --all-groups
+      - name: Skill tests
+        run: uv run pytest -q ../skills/stov-topology-analysis/tests ../skills/stov-phase-screen-simulation/tests
+
+  web:
+    name: Web frontend (lint + static export build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Build (static export)
+        run: npm run build
+      - name: Verify out/ artifact
+        run: |
+          test -f out/index.html
+          test -d out/_next
+          echo "static export OK"
+
+  gateway:
+    name: Gateway (typecheck + tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: gateway
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install
+        run: npm ci
+      - name: Typecheck
+        run: npm run build
+      - name: Tests
+        run: npm test

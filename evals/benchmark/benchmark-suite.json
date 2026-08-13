@@ -1,0 +1,81 @@
+{
+  "suite_id": "stov-benchmark-v1",
+  "description": "STOV deterministic benchmark B01-B10 (spec PHASE 20). Executed by platform/tests/benchmark/test_benchmark.py.",
+  "evaluation_policy": {
+    "llm_as_judge": "never_primary",
+    "primary_evaluators": ["code_evaluator", "physics_evaluator", "schema_evaluator", "numerical_evaluator"],
+    "human_evaluator": "required_for_claims"
+  },
+  "benchmarks": [
+    {
+      "id": "B01",
+      "name": "known positive topology",
+      "goal": "topological charge +1 must be measured as +1",
+      "test": "test_B01_known_positive_topology",
+      "type": "physics_evaluator"
+    },
+    {
+      "id": "B02",
+      "name": "known negative topology",
+      "goal": "topological charge -1 must be measured as -1",
+      "test": "test_B02_known_negative_topology",
+      "type": "physics_evaluator"
+    },
+    {
+      "id": "B03",
+      "name": "zero winding",
+      "goal": "flat phase must measure zero winding",
+      "test": "test_B03_zero_winding",
+      "type": "physics_evaluator"
+    },
+    {
+      "id": "B04",
+      "name": "invalid unit",
+      "goal": "unparseable Pint units must be rejected",
+      "test": "test_B04_invalid_unit",
+      "type": "schema_evaluator"
+    },
+    {
+      "id": "B05",
+      "name": "undersampled field rejection",
+      "goal": "undersampled propagation must fail sampling validation and block conclusions",
+      "test": "test_B05_undersampled_field_rejection",
+      "type": "numerical_evaluator"
+    },
+    {
+      "id": "B06",
+      "name": "convergence test",
+      "goal": "refinement sequence converges/diverges per the campaign rule",
+      "test": "test_B06_convergence_test",
+      "type": "numerical_evaluator"
+    },
+    {
+      "id": "B07",
+      "name": "fake/invalid evidence provenance",
+      "goal": "records without search boundary or identifier must fail provenance validation",
+      "test": "test_B07_fake_invalid_evidence_provenance",
+      "type": "schema_evaluator"
+    },
+    {
+      "id": "B08",
+      "name": "out-of-validity-domain model",
+      "goal": "parameters outside the validity domain must be rejected",
+      "test": "test_B08_out_of_validity_domain_model",
+      "type": "schema_evaluator"
+    },
+    {
+      "id": "B09",
+      "name": "numerical failure must not become physical contradiction",
+      "goal": "NUMERICAL_FAILURE classification never degrades to PHYSICAL_CONTRADICTION",
+      "test": "test_B09_numerical_failure_not_physical_contradiction",
+      "type": "code_evaluator"
+    },
+    {
+      "id": "B10",
+      "name": "search failure must not become 'no literature exists'",
+      "goal": "network failure is PARTIAL_RETRIEVAL, never ZERO_LITERATURE",
+      "test": "test_B10_search_failure_not_zero_literature",
+      "type": "code_evaluator"
+    }
+  ]
+}
