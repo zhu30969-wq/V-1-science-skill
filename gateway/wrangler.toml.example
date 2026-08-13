@@ -1,0 +1,13 @@
+# Cloudflare Worker deployment template (copy to wrangler.toml).
+# Secrets are set via `wrangler secret put` — NEVER in this file.
+
+name = "stov-ai-scientist-gateway"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+
+[vars]
+# Set the REAL values with `wrangler secret put LANGGRAPH_API_URL` instead
+# for anything sensitive. Public, non-secret config may live here:
+ALLOWED_ORIGIN = "https://zhu30969-wq.github.io"
+RATE_LIMIT_MAX = "60"
+RATE_LIMIT_WINDOW_SECONDS = "60"
