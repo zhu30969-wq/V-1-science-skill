@@ -1,0 +1,13 @@
+# Local gateway secrets (copy to .dev.vars; NEVER commit .dev.vars)
+# Local dev: the LangGraph dev server runs on http://127.0.0.1:2024
+
+LANGGRAPH_API_URL=http://127.0.0.1:2024
+LANGGRAPH_API_KEY=
+
+# Comma-separated exact origins allowed by CORS (never *)
+ALLOWED_ORIGIN=http://localhost:3000,https://zhu30969-wq.github.io
+
+RATE_LIMIT_MAX=60
+RATE_LIMIT_WINDOW_SECONDS=60
+
+PORT=8787
