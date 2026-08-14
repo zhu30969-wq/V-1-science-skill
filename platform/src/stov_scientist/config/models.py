@@ -36,9 +36,36 @@ def _require_api_key():
     return settings.deepseek_api_key
 
 
+class _ExtraBodyCompletions:
+    """Wraps chat.completions to inject ``extra_body`` parameters.
+
+    The DeepSeek v4 model family defaults to THINKING MODE, which rejects
+    tool_choice (the structured-output mechanism). Disabling thinking
+    requires the body field ``thinking={"type": "disabled"}`` — the OpenAI
+    client only accepts unknown fields through ``extra_body``.
+    """
+
+    def __init__(self, inner, extra_body: dict) -> None:
+        self._inner = inner
+        self._extra_body = extra_body
+
+    def __getattr__(self, name: str):
+        return getattr(self._inner, name)
+
+    def _merge(self, kwargs: dict) -> dict:
+        kwargs["extra_body"] = {**self._extra_body, **(kwargs.get("extra_body") or {})}
+        return kwargs
+
+    def create(self, **kwargs):
+        return self._inner.create(**self._merge(kwargs))
+
+    async def acreate(self, **kwargs):
+        return await self._inner.acreate(**self._merge(kwargs))
+
+
 def _build(model_name: str) -> ChatDeepSeek:
     settings = get_settings()
-    return ChatDeepSeek(
+    model = ChatDeepSeek(
         model=model_name,
         api_key=_require_api_key(),
         timeout=settings.llm_timeout,
@@ -46,6 +73,14 @@ def _build(model_name: str) -> ChatDeepSeek:
         temperature=settings.llm_temperature,
         streaming=settings.llm_streaming,
     )
+    if settings.llm_thinking == "disabled" and model.root_client is not None:
+        extra = {"thinking": {"type": "disabled"}}
+        model.client = _ExtraBodyCompletions(model.root_client.chat.completions, extra)
+        if model.root_async_client is not None:
+            model.async_client = _ExtraBodyCompletions(
+                model.root_async_client.chat.completions, extra
+            )
+    return model
 
 
 @lru_cache(maxsize=1)

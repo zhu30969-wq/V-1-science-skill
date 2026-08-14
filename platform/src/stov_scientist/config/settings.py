@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     llm_max_retries: int = 2
     llm_temperature: float = 0.0
     llm_streaming: bool = True
+    # DeepSeek v4 thinking mode rejects tool_choice (structured output);
+    # "disabled" injects thinking={"type": "disabled"} via extra_body.
+    llm_thinking: str = "disabled"
 
     # --- LangSmith --------------------------------------------------------
     langsmith_tracing: bool = False
