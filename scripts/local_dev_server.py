@@ -64,12 +64,22 @@ def _services_for(thread_id: str) -> ServiceBundle:
     with LOCK:
         services = THREAD_SERVICES.get(thread_id)
         if services is None:
+            from stov_scientist.config.settings import get_settings
+            from stov_scientist.control.services import LazyModel
+
+            settings = get_settings()
+            # Real DeepSeek models when DEEPSEEK_API_KEY is present in
+            # platform/.env; LazyModel defers construction until first use,
+            # and graph nodes degrade to deterministic fallbacks on any
+            # provider error (never crashes the pipeline).
+            main_model = LazyModel("main") if settings.deepseek_available else None
+            fast_model = LazyModel("fast") if settings.deepseek_available else None
             artifacts = ArtifactRegistry(
                 LocalStore(REPO_ROOT / "artifacts"), workdir=REPO_ROOT
             )
             services = ServiceBundle(
-                main_model=None,  # no API key: deterministic fallbacks (honest)
-                fast_model=None,
+                main_model=main_model,
+                fast_model=fast_model,
                 simulation=SimulationRunner(default_solver_registry(), artifacts),
                 artifacts=artifacts,
                 evidence=EvidenceLedger(),

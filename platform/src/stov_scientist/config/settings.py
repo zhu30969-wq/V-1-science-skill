@@ -11,7 +11,7 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import Field, SecretStr
+from pydantic import AliasChoices, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PLATFORM_ROOT = Path(__file__).resolve().parents[3]  # platform/
@@ -27,7 +27,13 @@ class Settings(BaseSettings):
     )
 
     # --- DeepSeek runtime -------------------------------------------------
-    deepseek_api_key: SecretStr | None = Field(default=None, description="DEEPSEEK_API_KEY")
+    # Spec .env.example uses the unprefixed DEEPSEEK_API_KEY; AliasChoices
+    # accepts both that and the STOV_-prefixed form.
+    deepseek_api_key: SecretStr | None = Field(
+        default=None,
+        description="DEEPSEEK_API_KEY",
+        validation_alias=AliasChoices("DEEPSEEK_API_KEY", "STOV_DEEPSEEK_API_KEY"),
+    )
     main_model: str = Field(default="deepseek-v4-pro", description="complex reasoning model")
     fast_model: str = Field(default="deepseek-v4-flash", description="extraction/classification model")
 
@@ -39,7 +45,10 @@ class Settings(BaseSettings):
 
     # --- LangSmith --------------------------------------------------------
     langsmith_tracing: bool = False
-    langsmith_api_key: SecretStr | None = None
+    langsmith_api_key: SecretStr | None = Field(
+        default=None,
+        validation_alias=AliasChoices("LANGSMITH_API_KEY", "STOV_LANGSMITH_API_KEY"),
+    )
     langsmith_project: str = "stov-ai-scientist"
 
     # --- Environment ------------------------------------------------------
